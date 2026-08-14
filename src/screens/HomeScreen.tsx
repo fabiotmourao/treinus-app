@@ -1,9 +1,11 @@
-import React, { useMemo, useRef, useEffect } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import React, { useMemo, useRef, useEffect, useState } from 'react';
+import { View, Text, Pressable, ScrollView, StyleSheet, Alert } from 'react-native';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useAppStore } from '../store/useAppStore';
 import { useWorkouts } from '../features/workouts/hooks';
+import { useExercisesCount } from '../features/exercises/hooks';
 import { MainTabParamList } from '../navigation/RootNavigator';
+import { SyncService, SyncProgress } from '../services/sync/SyncService';
 import { colors } from '../theme/darkColors';
 import { WeekCalendar } from '../features/workouts/components/WeekCalendar';
 
@@ -35,10 +37,54 @@ function formatMonth(date: Date) {
   return date.toLocaleDateString('pt-BR', { month: 'long' });
 }
 
+function formatLastSync(value: string | null) {
+  if (!value) {
+    return 'nunca';
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 export function HomeScreen({ navigation }: Props) {
   const lastSyncAt = useAppStore((state) => state.lastSyncAt);
+  const setLastSyncAt = useAppStore((state) => state.setLastSyncAt);
   const { data: workouts = [] } = useWorkouts();
+  const { data: totalExercises = 0 } = useExercisesCount();
   const scrollRef = useRef<ScrollView>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [progress, setProgress] = useState<SyncProgress | null>(null);
+
+  const hasExercises = totalExercises > 0;
+
+  const handleSync = async () => {
+    if (syncing) {
+      return;
+    }
+
+    try {
+      setSyncing(true);
+      setProgress({ received: 0, total: null, percent: 0 });
+      const result = await SyncService.syncExercises(setProgress);
+      setLastSyncAt(result.syncedAt);
+      setProgress({ received: result.totalSaved, total: null, percent: 100 });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Falha ao sincronizar dados.';
+      Alert.alert('Erro na sincronização', message);
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const performedDates = useMemo(() => {
     const set = new Set<string>();
@@ -157,10 +203,86 @@ export function HomeScreen({ navigation }: Props) {
         </View>
       </View>
 
-      <View style={{ backgroundColor: colors.card, borderRadius: 12, borderWidth: 1, borderColor: colors.borderCard, padding: 14, gap: 6 }}>
-        <Text style={{ color: colors.textPrimary, fontSize: 15, fontWeight: '700' }}>Status offline-first</Text>
-        <Text style={{ color: colors.textMuted }}>Última sincronização:</Text>
-        <Text style={{ color: '#e7edf5' }}>{lastSyncAt ?? 'nunca'}</Text>
+      <View style={{ backgroundColor: colors.card, borderRadius: 12, borderWidth: 1, borderColor: colors.borderCard, padding: 14, gap: 10 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Text style={{ color: colors.textPrimary, fontSize: 15, fontWeight: '700' }}>Catálogo de exercícios</Text>
+          {hasExercises ? (
+            <View
+              style={{
+                backgroundColor: colors.primaryAlpha,
+                borderRadius: 999,
+                paddingHorizontal: 8,
+                paddingVertical: 2,
+              }}
+            >
+              <Text style={{ color: colors.primaryLight, fontSize: 11, fontWeight: '600' }}>
+                {totalExercises} exercícios
+              </Text>
+            </View>
+          ) : null}
+        </View>
+
+        <Text style={{ color: colors.textMuted, lineHeight: 19 }}>
+          {syncing
+            ? `Baixando exercícios da internet...`
+            : hasExercises
+              ? 'Os exercícios ficam salvos no aparelho. Toque para atualizar com os dados mais recentes da internet.'
+              : 'Baixe a lista de exercícios uma vez para usar o app no modo offline.'}
+        </Text>
+
+        <Text style={{ color: colors.textMuted, fontSize: 12 }}>
+          Última sincronização: <Text style={{ color: '#e7edf5' }}>{formatLastSync(lastSyncAt)}</Text>
+        </Text>
+
+        {syncing && progress ? (
+          <View style={{ gap: 6 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              <Text style={{ color: colors.textMuted, fontSize: 12 }}>
+                {progress.total ? `${progress.received} de ${progress.total}` : `${progress.received} exercícios`}
+              </Text>
+              <Text style={{ color: colors.primaryLight, fontWeight: '700', fontSize: 12 }}>{progress.percent}%</Text>
+            </View>
+            <View
+              style={{
+                height: 8,
+                borderRadius: 4,
+                backgroundColor: colors.cardPressed,
+                overflow: 'hidden',
+              }}
+            >
+              <View
+                style={{
+                  height: '100%',
+                  width: `${progress.percent}%`,
+                  backgroundColor: colors.primary,
+                  borderRadius: 4,
+                }}
+              />
+            </View>
+          </View>
+        ) : null}
+
+        <Pressable
+          onPress={handleSync}
+          disabled={syncing}
+          style={[
+            {
+              borderRadius: 12,
+              backgroundColor: syncing ? colors.primaryDark : colors.primary,
+              paddingVertical: 12,
+              alignItems: 'center',
+            },
+            syncing && { opacity: 0.7 },
+          ]}
+        >
+          <Text style={{ color: colors.textInverse, fontWeight: '700' }}>
+            {syncing
+              ? `BAIXANDO... ${progress?.percent ?? 0}%`
+              : hasExercises
+                ? 'ATUALIZAR EXERCÍCIOS'
+                : 'BAIXAR EXERCÍCIOS'}
+          </Text>
+        </Pressable>
       </View>
     </ScrollView>
   );

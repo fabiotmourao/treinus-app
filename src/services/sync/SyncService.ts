@@ -9,6 +9,12 @@ type SyncResult = {
   syncedAt: string;
 };
 
+export type SyncProgress = {
+  received: number;
+  total: number | null;
+  percent: number;
+};
+
 type ApiMeta = {
   total?: number;
   hasNextPage?: boolean;
@@ -121,10 +127,21 @@ function splitInBatches<T>(items: T[], size: number): T[][] {
 }
 
 export const SyncService = {
-  async syncExercises(): Promise<SyncResult> {
+  async syncExercises(onProgress?: (progress: SyncProgress) => void): Promise<SyncResult> {
     const rawItems: Record<string, unknown>[] = [];
     const visitedCursors = new Set<string>();
     let after: string | undefined;
+    let totalFromApi: number | null = null;
+
+    const emitProgress = () => {
+      if (!onProgress) {
+        return;
+      }
+
+      const total = totalFromApi ?? Math.max(rawItems.length, 1);
+      const percent = total > 0 ? Math.min(100, Math.round((rawItems.length / total) * 100)) : 0;
+      onProgress({ received: rawItems.length, total: totalFromApi, percent });
+    };
 
     for (let page = 0; page < 80; page += 1) {
       let response;
@@ -141,8 +158,14 @@ export const SyncService = {
       rawItems.push(...pageItems);
 
       const meta = extractMeta(response.data);
+      if (totalFromApi === null && typeof meta.total === 'number' && meta.total > 0) {
+        totalFromApi = meta.total;
+      }
+
       const hasNextPage = !!meta.hasNextPage;
       const nextCursor = typeof meta.nextCursor === 'string' ? meta.nextCursor : '';
+
+      emitProgress();
 
       if (!hasNextPage || !nextCursor || visitedCursors.has(nextCursor)) {
         break;
@@ -160,6 +183,8 @@ export const SyncService = {
     for (const batch of batches) {
       ExerciseRepository.upsertMany(batch);
     }
+
+    onProgress?.({ received: uniqueMappedItems.length, total: totalFromApi, percent: 100 });
 
     return {
       totalReceived: rawItems.length,

@@ -3,7 +3,7 @@ import { View, Text, Alert, Pressable } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/RootNavigator';
 import { useAppStore } from '../store/useAppStore';
-import { SyncService } from '../services/sync/SyncService';
+import { SyncService, SyncProgress } from '../services/sync/SyncService';
 import { exercisesFeatureRepository } from '../features/exercises/repository';
 import { colors } from '../theme/darkColors';
 import { PrimaryButton } from '../components/PrimaryButton';
@@ -13,12 +13,14 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Sync'>;
 export function SyncScreen({ navigation }: Props) {
   const setLastSyncAt = useAppStore((state) => state.setLastSyncAt);
   const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState<SyncProgress | null>(null);
   const totalLocal = exercisesFeatureRepository.count();
 
   const handleSync = async () => {
     try {
       setLoading(true);
-      const result = await SyncService.syncExercises();
+      setProgress({ received: 0, total: null, percent: 0 });
+      const result = await SyncService.syncExercises(setProgress);
 
       if (result.totalSaved === 0) {
         Alert.alert(
@@ -38,6 +40,12 @@ export function SyncScreen({ navigation }: Props) {
     }
   };
 
+  const progressLabel = progress?.total
+    ? `${progress.received} de ${progress.total}`
+    : progress
+      ? `${progress.received} exercícios`
+      : '';
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.background, padding: 16, justifyContent: 'center' }}>
       <View style={{ backgroundColor: colors.card, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: colors.borderCard, gap: 14 }}>
@@ -47,6 +55,32 @@ export function SyncScreen({ navigation }: Props) {
         </Text>
 
         <Text style={{ color: colors.textSubtle }}>Exercícios locais atuais: {totalLocal}</Text>
+
+        {loading && progress ? (
+          <View style={{ gap: 6 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              <Text style={{ color: colors.textMuted, fontSize: 12 }}>{progressLabel}</Text>
+              <Text style={{ color: colors.primaryLight, fontWeight: '700', fontSize: 12 }}>{progress.percent}%</Text>
+            </View>
+            <View
+              style={{
+                height: 8,
+                borderRadius: 4,
+                backgroundColor: colors.cardPressed,
+                overflow: 'hidden',
+              }}
+            >
+              <View
+                style={{
+                  height: '100%',
+                  width: `${progress.percent}%`,
+                  backgroundColor: colors.primary,
+                  borderRadius: 4,
+                }}
+              />
+            </View>
+          </View>
+        ) : null}
 
         {totalLocal > 0 ? (
           <Pressable
@@ -65,7 +99,7 @@ export function SyncScreen({ navigation }: Props) {
         ) : null}
 
         <PrimaryButton
-          label={loading ? 'SINCRONIZANDO...' : 'SINCRONIZAR AGORA'}
+          label={loading ? `SINCRONIZANDO... ${progress?.percent ?? 0}%` : 'SINCRONIZAR AGORA'}
           onPress={handleSync}
           disabled={loading}
           style={{ borderRadius: 12, paddingVertical: 14 }}

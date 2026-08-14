@@ -1,6 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { SplashScreen } from '../screens/SplashScreen';
 import { SyncScreen } from '../screens/SyncScreen';
@@ -52,6 +53,8 @@ function TabIcon({ name, color }: { name: TabIconName; color: string }) {
 }
 
 function MainTabs() {
+  const insets = useSafeAreaInsets();
+
   return (
     <Tab.Navigator
       initialRouteName="Home"
@@ -59,9 +62,9 @@ function MainTabs() {
         tabBarStyle: {
           backgroundColor: colors.card,
           borderTopColor: colors.borderCard,
-          height: 66,
+          height: 66 + insets.bottom,
           paddingTop: 6,
-          paddingBottom: 6,
+          paddingBottom: 6 + insets.bottom,
         },
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: '#7a8595',

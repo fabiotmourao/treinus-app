@@ -133,6 +133,19 @@ const migrations: Migration[] = [
       `);
     },
   },
+  {
+    version: 4,
+    name: 'add_app_meta',
+    up: (db) => {
+      db.execSync(`
+        CREATE TABLE IF NOT EXISTS app_meta (
+          key TEXT PRIMARY KEY NOT NULL,
+          value TEXT NOT NULL,
+          updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+      `);
+    },
+  },
 ];
 
 export function runMigrations(db: DbLike) {

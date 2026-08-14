@@ -9,6 +9,7 @@ type WebState = {
   favorites: Set<string>;
   workouts: Map<string, WorkoutCreateInput>;
   workoutExercises: Map<string, WebWorkoutExercise[]>;
+  lastSyncAt: string | null;
 };
 
 type PersistedWebState = {
@@ -16,6 +17,7 @@ type PersistedWebState = {
   favorites: string[];
   workouts: WorkoutCreateInput[];
   workoutExercises: Record<string, WebWorkoutExercise[]>;
+  lastSyncAt: string | null;
 };
 
 const state: WebState = {
@@ -23,6 +25,7 @@ const state: WebState = {
   favorites: new Set(),
   workouts: new Map(),
   workoutExercises: new Map(),
+  lastSyncAt: null,
 };
 
 function canUseStorage() {
@@ -39,6 +42,7 @@ function saveState() {
     favorites: Array.from(state.favorites.values()),
     workouts: Array.from(state.workouts.values()),
     workoutExercises: Object.fromEntries(state.workoutExercises.entries()),
+    lastSyncAt: state.lastSyncAt,
   };
 
   globalThis.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
@@ -60,6 +64,7 @@ function loadState() {
     state.favorites = new Set(parsed.favorites ?? []);
     state.workouts = new Map((parsed.workouts ?? []).map((item) => [item.id, item]));
     state.workoutExercises = new Map(Object.entries(parsed.workoutExercises ?? {}));
+    state.lastSyncAt = parsed.lastSyncAt ?? null;
   } catch {
     globalThis.localStorage.removeItem(STORAGE_KEY);
   }
@@ -68,6 +73,15 @@ function loadState() {
 loadState();
 
 export const webStore = {
+  getLastSyncAt() {
+    return state.lastSyncAt;
+  },
+
+  setLastSyncAt(value: string) {
+    state.lastSyncAt = value;
+    saveState();
+  },
+
   clearExercises() {
     state.exercises.clear();
     saveState();

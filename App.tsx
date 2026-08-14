@@ -2,6 +2,7 @@ import 'react-native-gesture-handler';
 import React, { useEffect } from 'react';
 import { DarkTheme, NavigationContainer } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { initDatabase } from './src/db';
 import { colors } from './src/theme/darkColors';
@@ -27,12 +28,14 @@ export default function App() {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <FeedbackProvider>
-        <NavigationContainer theme={appTheme}>
-          <RootNavigator />
-        </NavigationContainer>
-      </FeedbackProvider>
-    </QueryClientProvider>
+    <SafeAreaProvider>
+      <QueryClientProvider client={queryClient}>
+        <FeedbackProvider>
+          <NavigationContainer theme={appTheme}>
+            <RootNavigator />
+          </NavigationContainer>
+        </FeedbackProvider>
+      </QueryClientProvider>
+    </SafeAreaProvider>
   );
 }

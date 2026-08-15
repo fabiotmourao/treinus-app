@@ -224,10 +224,12 @@ export function HomeScreen({ navigation }: Props) {
 
         <Text style={{ color: colors.textMuted, lineHeight: 19 }}>
           {syncing
-            ? `Baixando exercícios da internet...`
+            ? progress?.phase === 'images'
+              ? 'Baixando imagens dos exercícios para uso offline...'
+              : 'Baixando exercícios da internet...'
             : hasExercises
-              ? 'Os exercícios ficam salvos no aparelho. Toque para atualizar com os dados mais recentes da internet.'
-              : 'Baixe a lista de exercícios uma vez para usar o app no modo offline.'}
+              ? 'Os exercícios e as imagens ficam salvos no aparelho. Toque para atualizar com os dados mais recentes da internet.'
+              : 'Baixe a lista de exercícios e as imagens uma vez para usar o app no modo offline.'}
         </Text>
 
         <Text style={{ color: colors.textMuted, fontSize: 12 }}>
@@ -238,7 +240,11 @@ export function HomeScreen({ navigation }: Props) {
           <View style={{ gap: 6 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
               <Text style={{ color: colors.textMuted, fontSize: 12 }}>
-                {progress.total ? `${progress.received} de ${progress.total}` : `${progress.received} exercícios`}
+                {progress.phase === 'images'
+                  ? `Imagens ${progress.received} de ${progress.total ?? '?'}`
+                  : progress.total
+                    ? `${progress.received} de ${progress.total}`
+                    : `${progress.received} exercícios`}
               </Text>
               <Text style={{ color: colors.primaryLight, fontWeight: '700', fontSize: 12 }}>{progress.percent}%</Text>
             </View>
@@ -277,7 +283,9 @@ export function HomeScreen({ navigation }: Props) {
         >
           <Text style={{ color: colors.textInverse, fontWeight: '700' }}>
             {syncing
-              ? `BAIXANDO... ${progress?.percent ?? 0}%`
+              ? progress?.phase === 'images'
+                ? `BAIXANDO IMAGENS... ${progress?.percent ?? 0}%`
+                : `BAIXANDO... ${progress?.percent ?? 0}%`
               : hasExercises
                 ? 'ATUALIZAR EXERCÍCIOS'
                 : 'BAIXAR EXERCÍCIOS'}

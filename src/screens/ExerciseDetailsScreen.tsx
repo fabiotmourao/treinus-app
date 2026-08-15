@@ -24,7 +24,7 @@ export function ExerciseDetailsScreen({ route }: Props) {
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={{ padding: 16, gap: 14 }}>
       <View style={{ borderRadius: 14, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.card, padding: 14, gap: 12 }}>
-        <ExerciseImage gifUrl={exercise.gifUrl} size={260} borderRadius={10} style={{ width: '100%' }} />
+        <ExerciseImage gifUrl={exercise.gifUrl} gifLocalPath={exercise.gifLocalPath} size={260} borderRadius={10} style={{ width: '100%' }} />
 
         <Text style={{ color: colors.textStrong, fontSize: 24, fontWeight: '700' }}>{exercise.name}</Text>
         <Text style={{ color: colors.textSecondary, fontSize: 16 }}>

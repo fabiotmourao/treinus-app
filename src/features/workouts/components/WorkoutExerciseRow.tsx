@@ -7,6 +7,7 @@ import { ActionMenu } from '../../../components/ActionMenu';
 type WorkoutExerciseRowProps = {
   name: string;
   gifUrl: string | null;
+  gifLocalPath?: string | null;
   seriesCount: number;
   reps: number;
   loadKg: number;
@@ -15,7 +16,7 @@ type WorkoutExerciseRowProps = {
   onDelete?: () => void;
 };
 
-export function WorkoutExerciseRow({ name, gifUrl, seriesCount, reps, loadKg, onPress, onEdit, onDelete }: WorkoutExerciseRowProps) {
+export function WorkoutExerciseRow({ name, gifUrl, gifLocalPath, seriesCount, reps, loadKg, onPress, onEdit, onDelete }: WorkoutExerciseRowProps) {
   const menuActions = React.useMemo(() => {
     const actions: { label: string; onPress: () => void; destructive?: boolean }[] = [];
     if (onEdit) {
@@ -29,7 +30,7 @@ export function WorkoutExerciseRow({ name, gifUrl, seriesCount, reps, loadKg, on
 
   return (
     <Pressable onPress={onPress} style={styles.row}>
-      <ExerciseImage gifUrl={gifUrl} size={96} borderRadius={10} />
+      <ExerciseImage gifUrl={gifUrl} gifLocalPath={gifLocalPath} size={96} borderRadius={10} />
       <View style={styles.info}>
         <View style={styles.rowHeader}>
           <Text style={styles.name}>{name}</Text>

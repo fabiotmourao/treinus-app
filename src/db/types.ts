@@ -8,6 +8,7 @@ export type ExerciseUpsertInput = {
   normalizedGroupLabel?: string;
   bodyView?: 'front' | 'back' | 'both';
   gifUrl?: string | null;
+  gifLocalPath?: string | null;
   instructions: string[];
   secondaryMuscles: string[];
   tags: string[];

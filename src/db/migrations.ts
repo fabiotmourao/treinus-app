@@ -146,6 +146,15 @@ const migrations: Migration[] = [
       `);
     },
   },
+  {
+    version: 5,
+    name: 'add_exercise_gif_local_path',
+    up: (db) => {
+      db.execSync(`
+        ALTER TABLE exercises ADD COLUMN gif_local_path TEXT;
+      `);
+    },
+  },
 ];
 
 export function runMigrations(db: DbLike) {

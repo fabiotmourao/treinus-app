@@ -50,6 +50,7 @@ export const FavoritesRepository = {
           target: item.target,
           equipment: item.equipment,
           gifUrl: item.gifUrl ?? null,
+          gifLocalPath: item.gifLocalPath ?? null,
         }));
     }
 
@@ -58,7 +59,7 @@ export const FavoritesRepository = {
     }
 
     return db.getAllSync(
-      `SELECT e.id, e.name, e.body_part as bodyPart, e.target, e.equipment, e.gif_url as gifUrl
+      `SELECT e.id, e.name, e.body_part as bodyPart, e.target, e.equipment, e.gif_url as gifUrl, e.gif_local_path as gifLocalPath
        FROM favorites f
        JOIN exercises e ON e.id = f.exercise_id
        ORDER BY f.created_at DESC`

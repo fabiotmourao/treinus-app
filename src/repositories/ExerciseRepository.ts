@@ -61,10 +61,11 @@ export const ExerciseRepository = {
              normalized_group_label,
              body_view,
              gif_url,
+             gif_local_path,
              source_updated_at,
              updated_at
            )
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
            ON CONFLICT(id) DO UPDATE SET
              name=excluded.name,
              body_part=excluded.body_part,
@@ -74,6 +75,7 @@ export const ExerciseRepository = {
              normalized_group_label=excluded.normalized_group_label,
              body_view=excluded.body_view,
              gif_url=excluded.gif_url,
+             gif_local_path=excluded.gif_local_path,
              source_updated_at=excluded.source_updated_at,
              updated_at=datetime('now')`,
           [
@@ -86,6 +88,7 @@ export const ExerciseRepository = {
             item.normalizedGroupLabel ?? null,
             item.bodyView ?? null,
             item.gifUrl ?? null,
+            item.gifLocalPath ?? null,
             item.sourceUpdatedAt ?? null,
           ]
         );
@@ -137,7 +140,7 @@ export const ExerciseRepository = {
     const database = db;
 
     return database.getAllSync<Exercise>(
-      `SELECT id, name, body_part as bodyPart, target, equipment, gif_url as gifUrl
+      `SELECT id, name, body_part as bodyPart, target, equipment, gif_url as gifUrl, gif_local_path as gifLocalPath
        FROM exercises
        WHERE (
          ? = ''
@@ -215,7 +218,7 @@ export const ExerciseRepository = {
 
     const database = db;
     return database.getAllSync<Exercise>(
-      `SELECT id, name, body_part as bodyPart, target, equipment, gif_url as gifUrl
+      `SELECT id, name, body_part as bodyPart, target, equipment, gif_url as gifUrl, gif_local_path as gifLocalPath
        FROM exercises
        WHERE normalized_group_key = ?
          AND (body_view = ? OR body_view = 'both')
@@ -268,6 +271,7 @@ export const ExerciseRepository = {
         target: item.target,
         equipment: item.equipment,
         gifUrl: item.gifUrl ?? null,
+        gifLocalPath: item.gifLocalPath ?? null,
         instructions: item.instructions ?? [],
         secondaryMuscles: item.secondaryMuscles ?? [],
         tags: item.tags ?? [],
@@ -286,8 +290,9 @@ export const ExerciseRepository = {
       target: string;
       equipment: string;
       gifUrl: string | null;
+      gifLocalPath?: string | null;
     }>(
-      `SELECT id, name, body_part as bodyPart, target, equipment, gif_url as gifUrl
+      `SELECT id, name, body_part as bodyPart, target, equipment, gif_url as gifUrl, gif_local_path as gifLocalPath
        FROM exercises
        WHERE id = ?
        LIMIT 1`,

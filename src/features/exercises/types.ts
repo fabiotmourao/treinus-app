@@ -5,6 +5,7 @@ export type Exercise = {
   target: string;
   equipment: string;
   gifUrl: string | null;
+  gifLocalPath?: string | null;
 };
 
 export type ExerciseDetails = Exercise & {

@@ -14,11 +14,16 @@ export const AppMetaRepository = {
       return null;
     }
 
-    const row = db.getFirstSync<{ value: string }>(
-      'SELECT value FROM app_meta WHERE key = ? LIMIT 1',
-      [LAST_SYNC_KEY]
-    );
-    return row?.value ?? null;
+    try {
+      const row = db.getFirstSync<{ value: string }>(
+        'SELECT value FROM app_meta WHERE key = ? LIMIT 1',
+        [LAST_SYNC_KEY]
+      );
+      return row?.value ?? null;
+    } catch {
+      // A tabela app_meta pode ainda não existir nas primeiras inicializações.
+      return null;
+    }
   },
 
   setLastSyncAt(value: string) {
@@ -31,10 +36,14 @@ export const AppMetaRepository = {
       return;
     }
 
-    db.runSync(
-      `INSERT INTO app_meta (key, value) VALUES (?, ?)
-       ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = datetime('now')`,
-      [LAST_SYNC_KEY, value]
-    );
+    try {
+      db.runSync(
+        `INSERT INTO app_meta (key, value) VALUES (?, ?)
+         ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = datetime('now')`,
+        [LAST_SYNC_KEY, value]
+      );
+    } catch {
+      // Se a tabela ainda não existir, ignora a gravação silenciosamente.
+    }
   },
 };

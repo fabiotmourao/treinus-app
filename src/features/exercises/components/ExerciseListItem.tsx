@@ -10,6 +10,7 @@ type ExerciseListItemProps = {
     target: string;
     equipment: string;
     gifUrl: string | null;
+    gifLocalPath?: string | null;
   };
   isFavorite: boolean;
   onPress: () => void;
@@ -20,9 +21,9 @@ export function ExerciseListItem({ item, isFavorite, onPress, onToggleFavorite }
   return (
     <Pressable onPress={onPress} style={styles.card}>
       <View style={styles.content}>
-        {item.gifUrl ? (
+        {item.gifLocalPath || item.gifUrl ? (
           <Image
-            source={{ uri: item.gifUrl }}
+            source={{ uri: item.gifLocalPath ?? item.gifUrl ?? undefined }}
             style={styles.image}
             resizeMode="contain"
           />

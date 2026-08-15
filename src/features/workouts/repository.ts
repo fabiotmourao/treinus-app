@@ -24,6 +24,7 @@ export type WorkoutExercise = {
   target: string;
   equipment: string;
   gifUrl: string | null;
+  gifLocalPath?: string | null;
 };
 
 export type WorkoutDetails = {

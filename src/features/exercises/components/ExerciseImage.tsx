@@ -4,13 +4,16 @@ import { colors } from '../../../theme/darkColors';
 
 type ExerciseImageProps = {
   gifUrl: string | null;
+  gifLocalPath?: string | null;
   size?: number;
   borderRadius?: number;
   style?: ViewStyle | ImageStyle;
 };
 
-export function ExerciseImage({ gifUrl, size = 72, borderRadius = 8, style }: ExerciseImageProps) {
-  if (!gifUrl) {
+export function ExerciseImage({ gifUrl, gifLocalPath, size = 72, borderRadius = 8, style }: ExerciseImageProps) {
+  const resolvedUri = gifLocalPath ?? gifUrl;
+
+  if (!resolvedUri) {
     return (
       <View
         style={[
@@ -24,7 +27,7 @@ export function ExerciseImage({ gifUrl, size = 72, borderRadius = 8, style }: Ex
 
   return (
     <Image
-      source={{ uri: gifUrl }}
+      source={{ uri: resolvedUri }}
       style={[
         styles.image,
         { width: size, height: size, borderRadius },

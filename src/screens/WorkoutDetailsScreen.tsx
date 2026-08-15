@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { FlatList, Pressable, ScrollView, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/RootNavigator';
 import { estimateWorkoutMetrics, parseWorkoutExerciseConfig } from '../features/workouts/selectors';
@@ -15,6 +16,7 @@ import { useFeedback } from '../components/FeedbackProvider';
 type Props = NativeStackScreenProps<RootStackParamList, 'WorkoutDetails'>;
 
 export function WorkoutDetailsScreen({ route, navigation }: Props) {
+  const insets = useSafeAreaInsets();
   const { workoutId } = route.params;
   const { confirm, showToast } = useFeedback();
 
@@ -58,7 +60,10 @@ export function WorkoutDetailsScreen({ route, navigation }: Props) {
   }
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={{ gap: 14, paddingBottom: 24 }}>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: colors.background }}
+      contentContainerStyle={{ gap: 14, paddingBottom: insets.bottom + 24 }}
+    >
       <View style={{ backgroundColor: colors.card, paddingHorizontal: 16, paddingVertical: 18, gap: 14 }}>
         <Text style={{ color: colors.textPrimary, fontSize: 20, fontWeight: '700' }}>{workout.name}</Text>
         {workout.trainingDays?.length ? (
@@ -90,6 +95,7 @@ export function WorkoutDetailsScreen({ route, navigation }: Props) {
               <WorkoutExerciseRow
                 name={item.name}
                 gifUrl={item.gifUrl}
+                gifLocalPath={item.gifLocalPath}
                 seriesCount={config.series.length}
                 reps={firstSeries.reps}
                 loadKg={firstSeries.loadKg}

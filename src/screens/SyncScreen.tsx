@@ -40,11 +40,13 @@ export function SyncScreen({ navigation }: Props) {
     }
   };
 
-  const progressLabel = progress?.total
-    ? `${progress.received} de ${progress.total}`
-    : progress
-      ? `${progress.received} exercícios`
-      : '';
+  const progressLabel = progress?.phase === 'images'
+    ? `Imagens ${progress.received} de ${progress.total ?? '?'}`
+    : progress?.total
+      ? `${progress.received} de ${progress.total}`
+      : progress
+        ? `${progress.received} exercícios`
+        : '';
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background, padding: 16, justifyContent: 'center' }}>
@@ -55,6 +57,12 @@ export function SyncScreen({ navigation }: Props) {
         </Text>
 
         <Text style={{ color: colors.textSubtle }}>Exercícios locais atuais: {totalLocal}</Text>
+
+        {loading && progress?.phase === 'images' ? (
+          <Text style={{ color: colors.textMuted, fontSize: 13 }}>
+            Baixando imagens dos exercícios para uso offline...
+          </Text>
+        ) : null}
 
         {loading && progress ? (
           <View style={{ gap: 6 }}>
@@ -99,7 +107,13 @@ export function SyncScreen({ navigation }: Props) {
         ) : null}
 
         <PrimaryButton
-          label={loading ? `SINCRONIZANDO... ${progress?.percent ?? 0}%` : 'SINCRONIZAR AGORA'}
+          label={
+            loading
+              ? progress?.phase === 'images'
+                ? `BAIXANDO IMAGENS... ${progress?.percent ?? 0}%`
+                : `SINCRONIZANDO... ${progress?.percent ?? 0}%`
+              : 'SINCRONIZAR AGORA'
+          }
           onPress={handleSync}
           disabled={loading}
           style={{ borderRadius: 12, paddingVertical: 14 }}

@@ -12,6 +12,7 @@ type ExerciseCardProps = {
     target: string;
     equipment: string;
     gifUrl: string | null;
+    gifLocalPath?: string | null;
   };
   isFavorite: boolean;
   onPress: () => void;
@@ -33,7 +34,7 @@ export function ExerciseCard({
       style={[styles.card, selected && styles.cardSelected]}
     >
       <View style={styles.imageWrap}>
-        <ExerciseImage gifUrl={item.gifUrl} size={110} borderRadius={10} />
+        <ExerciseImage gifUrl={item.gifUrl} gifLocalPath={item.gifLocalPath} size={110} borderRadius={10} />
       </View>
 
       <Text style={styles.name} numberOfLines={2}>

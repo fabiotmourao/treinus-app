@@ -2,6 +2,7 @@ import { exerciseDbClient } from '../api/exerciseDbClient';
 import { ExerciseRepository } from '../../repositories/ExerciseRepository';
 import { ExerciseUpsertInput } from '../../db/types';
 import { mapApiExercise } from '../../features/exercises/mappers';
+import { cacheExerciseGifs } from '../gifCacheService';
 
 type SyncResult = {
   totalReceived: number;
@@ -13,6 +14,7 @@ export type SyncProgress = {
   received: number;
   total: number | null;
   percent: number;
+  phase?: 'metadata' | 'images';
 };
 
 type ApiMeta = {
@@ -140,7 +142,7 @@ export const SyncService = {
 
       const total = totalFromApi ?? Math.max(rawItems.length, 1);
       const percent = total > 0 ? Math.min(100, Math.round((rawItems.length / total) * 100)) : 0;
-      onProgress({ received: rawItems.length, total: totalFromApi, percent });
+      onProgress({ received: rawItems.length, total: totalFromApi, percent, phase: 'metadata' });
     };
 
     for (let page = 0; page < 80; page += 1) {
@@ -178,7 +180,15 @@ export const SyncService = {
 
     const mappedItems = rawItems.map(mapApiExercise).filter((item): item is ExerciseUpsertInput => !!item);
     const uniqueMappedItems = Array.from(new Map(mappedItems.map((item) => [item.id, item])).values());
-    const batches = splitInBatches(uniqueMappedItems, 200);
+
+    // Download dos GIFs para uso offline.
+    const imagesTotal = uniqueMappedItems.filter((item) => !!item.gifUrl).length;
+    const itemsWithLocalGif = await cacheExerciseGifs(uniqueMappedItems, (done) => {
+      const percent = imagesTotal > 0 ? Math.min(100, Math.round((done / imagesTotal) * 100)) : 100;
+      onProgress?.({ received: done, total: imagesTotal, percent, phase: 'images' });
+    });
+
+    const batches = splitInBatches(itemsWithLocalGif, 200);
 
     for (const batch of batches) {
       ExerciseRepository.upsertMany(batch);

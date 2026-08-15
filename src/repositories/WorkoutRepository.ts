@@ -234,6 +234,7 @@ export const WorkoutRepository = {
           target: exercise?.target ?? '',
           equipment: exercise?.equipment ?? '',
           gifUrl: exercise?.gifUrl ?? null,
+          gifLocalPath: exercise?.gifLocalPath ?? null,
         };
       });
       return { workout, exercises };
@@ -271,7 +272,7 @@ export const WorkoutRepository = {
 
     const exercises = db.getAllSync(
       `SELECT we.id, we.sort_order as sortOrder, we.sets, we.reps, we.rest_seconds as restSeconds, we.notes,
-              e.id as exerciseId, e.name, e.body_part as bodyPart, e.target, e.equipment, e.gif_url as gifUrl
+              e.id as exerciseId, e.name, e.body_part as bodyPart, e.target, e.equipment, e.gif_url as gifUrl, e.gif_local_path as gifLocalPath
        FROM workout_exercises we
        JOIN exercises e ON e.id = we.exercise_id
        WHERE we.workout_id = ?

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/RootNavigator';
 import { parseWorkoutExerciseConfig } from '../features/workouts/selectors';
@@ -17,6 +18,7 @@ type EditableSeries = {
 };
 
 export function WorkoutExerciseEditScreen({ route, navigation }: Props) {
+  const insets = useSafeAreaInsets();
   const { workoutId, workoutExerciseId } = route.params;
 
   const [series, setSeries] = useState<EditableSeries[]>([]);
@@ -24,6 +26,7 @@ export function WorkoutExerciseEditScreen({ route, navigation }: Props) {
   const [exerciseName, setExerciseName] = useState('Exercício');
   const [exerciseSubtitle, setExerciseSubtitle] = useState('');
   const [gifUrl, setGifUrl] = useState<string | null>(null);
+  const [gifLocalPath, setGifLocalPath] = useState<string | null>(null);
 
   const { data: details } = useWorkoutDetails(workoutId);
   const updateConfig = useUpdateWorkoutExerciseConfig();
@@ -42,6 +45,7 @@ export function WorkoutExerciseEditScreen({ route, navigation }: Props) {
     setExerciseName(item.name ?? 'Exercício');
     setExerciseSubtitle([item.bodyPart, item.target].filter(Boolean).join(', '));
     setGifUrl(item.gifUrl ?? null);
+    setGifLocalPath(item.gifLocalPath ?? null);
   }, [workoutExerciseId, workoutId, details]);
 
   const canSave = useMemo(
@@ -83,9 +87,12 @@ export function WorkoutExerciseEditScreen({ route, navigation }: Props) {
   };
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={{ padding: 16, gap: 14 }}>
+    <ScrollView
+      style={{ flex: 1, backgroundColor: colors.background }}
+      contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: insets.bottom + 24 }}
+    >
       <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
-        <ExerciseImage gifUrl={gifUrl} size={96} borderRadius={12} />
+        <ExerciseImage gifUrl={gifUrl} gifLocalPath={gifLocalPath} size={96} borderRadius={12} />
         <View style={{ flex: 1, gap: 6 }}>
           <Text style={{ color: colors.textStrong, fontSize: 28, fontWeight: '700' }}>{exerciseName}</Text>
           <Text style={{ color: colors.textSecondary, fontSize: 16 }}>{exerciseSubtitle}</Text>
@@ -117,9 +124,10 @@ export function WorkoutExerciseEditScreen({ route, navigation }: Props) {
 
       <Pressable
         onPress={addSeries}
-        style={{ alignSelf: 'flex-start', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 }}
+        style={{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 6 }}
       >
-        <Text style={{ color: colors.primary, fontSize: 30, fontWeight: '700' }}>+ Adicionar série</Text>
+        <Text style={{ color: colors.primary, fontSize: 18, fontWeight: '700' }}>+</Text>
+        <Text style={{ color: colors.primary, fontSize: 15, fontWeight: '700' }}>Adicionar série</Text>
       </Pressable>
 
       <PrimaryButton

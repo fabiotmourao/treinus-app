@@ -8,7 +8,7 @@ type AppState = {
 };
 
 export const useAppStore = create<AppState>((set) => ({
-  lastSyncAt: AppMetaRepository.getLastSyncAt(),
+  lastSyncAt: null,
   setLastSyncAt: (value) => {
     AppMetaRepository.setLastSyncAt(value);
     set({ lastSyncAt: value });

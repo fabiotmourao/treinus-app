@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { FlatList, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/RootNavigator';
 import {
@@ -27,6 +28,7 @@ type ExerciseItem = {
 };
 
 export function WorkoutExerciseGroupScreen({ route, navigation }: Props) {
+  const insets = useSafeAreaInsets();
   const { workoutId, groupKey, groupLabel, bodyView } = route.params;
   const [search, setSearch] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -122,11 +124,13 @@ export function WorkoutExerciseGroupScreen({ route, navigation }: Props) {
         )}
       />
 
-      <PrimaryButton
-        label={`Adicionar exercício${selectedIds.size ? ` (${selectedIds.size})` : ''}`}
-        onPress={handleAddSelected}
-        disabled={selectedIds.size === 0}
-      />
+      <View style={{ paddingBottom: insets.bottom }}>
+        <PrimaryButton
+          label={`Adicionar exercício${selectedIds.size ? ` (${selectedIds.size})` : ''}`}
+          onPress={handleAddSelected}
+          disabled={selectedIds.size === 0}
+        />
+      </View>
     </View>
   );
 }
